@@ -1,4 +1,4 @@
 #!/bin/bash
-gedit
+gcalctool
 
 rm -rf $(pwd)
