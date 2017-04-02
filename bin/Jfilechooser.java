@@ -15,8 +15,10 @@ public class Jfilechooser extends JFrame {
 	void Filebrowser(String defaultfile) {
 		final JFrame frame = new JFrame("JFileChoose");
 		final JFrame destframe = new JFrame("Copy To");
+                final JFrame moveframe = new JFrame("move To");
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		destframe.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+                moveframe.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		desktop = Desktop.getDesktop();
 
 		JPanel mainpanel = new JPanel();
@@ -31,9 +33,15 @@ public class Jfilechooser extends JFrame {
 
 		JButton open = new JButton("Open");
 		JButton copy = new JButton("Copy");
+                JButton move = new JButton("move");
+                JButton del = new JButton("delete");
+                 
 
 		btnPnl.add(open);
 		btnPnl.add(copy);
+                btnPnl.add(move);
+                btnPnl.add(del);
+
 		btnPnl.setBorder(BorderFactory.createLineBorder(Color.BLACK));
 
 		final JLabel directoryLabel = new JLabel(" ");
@@ -51,7 +59,10 @@ public class Jfilechooser extends JFrame {
 		mainpanel.add(btnPnl, BorderLayout.SOUTH);
 		JPanel destpanel = new JPanel();
 		destpanel.setLayout(layout);
+                JPanel movepanel = new JPanel();
+		movepanel.setLayout(layout);
 		JPanel btmcopy = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+                JPanel btmmove = new JPanel(new FlowLayout(FlowLayout.RIGHT));
 		JButton ok = new JButton("Ok");
 
 		open.addActionListener(new ActionListener() {
@@ -65,6 +76,40 @@ public class Jfilechooser extends JFrame {
 				frame.repaint();
 			}
 		});
+
+              move.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent ae) {
+				try {
+					btmmove.add(ok);
+					ok.addActionListener(new ActionListener() {
+						public void actionPerformed(ActionEvent e) {
+							File[] srcfiles = fileChooser.getSelectedFiles();
+							destfile = destChooser.getSelectedFile();
+							try {
+								File[] user_files = fileskip(srcfiles);
+								otf.move(user_files, destfile);
+							} catch (Exception e1) {
+
+							}
+
+							moveframe.setVisible(false);
+						}
+					});
+					movepanel.add(btmmove, BorderLayout.SOUTH);
+					movepanel.add(destChooser, BorderLayout.CENTER);
+					moveframe.add(movepanel);
+
+					moveframe.pack();
+					moveframe.setVisible(true);
+					destfile = destChooser.getSelectedFile();
+				} catch (Throwable t) {
+					System.out.println(t);
+				}
+				moveframe.repaint();
+			}
+		});
+
+
 
 		copy.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent ae) {
