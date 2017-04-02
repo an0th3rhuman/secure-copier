@@ -1,15 +1,16 @@
 import javax.swing.JOptionPane;
-
 import org.apache.commons.codec.digest.DigestUtils;
-
 import java.io.*;
+import java.awt.*;  
+import javax.swing.JFrame; 
 
-public class init {
+public class init  {
 	File f = null;
 	OTF otfmain = new OTF();
 	parser parse = new parser();
 	database db = new database();
 	passauth frame = new passauth();
+        final JFrame waitframe=new JFrame();
 	String hashval = "";
 	String hashdb = "";
 	String devnode = "";
@@ -23,17 +24,25 @@ public class init {
 		f.mkdirs();
 		String serialhash = DigestUtils.sha256Hex(SerialNo);
 		hashdb = db.getvalue(serialhash);
+                devnode = parse.fetch_devnode();
+		String[] part = devnode.split(" ");
+		devnode = part[1];
 
 		if (hashdb == null) {
-			JOptionPane.showMessageDialog(null, "Pendrive not registered!", "Error", JOptionPane.ERROR_MESSAGE);
-			int output = JOptionPane.showConfirmDialog(null, "Do you wish to register ?", "Confirm",
-					JOptionPane.YES_NO_OPTION);
+			int output = JOptionPane.showConfirmDialog(null, "Yor Pendrive is no registered \n Do you wish to register ?", "Confirm",JOptionPane.YES_NO_OPTION);
 			if (output == JOptionPane.YES_OPTION) {
 				register(SerialNo);
 			} else if (output == JOptionPane.NO_OPTION) {
 				System.exit(0);
 			}
+                          else if (output == JOptionPane.CLOSED_OPTION)
+                           {
+                              JOptionPane.showMessageDialog(null, "Please re-insert the pendrive to authenticate!");
+                              while(true){System.out.println("You can never auth me :)");}
+                              
+                           }
 		} else {
+                        JOptionPane.showMessageDialog(null, "You are  already registered \n Checking for integrity... ");
 			frame.pass_init();
 			frame.setSize(300, 100);
 			frame.setVisible(true);
@@ -44,11 +53,7 @@ public class init {
 				try {
 					OTF.Passphrase = frame.pass;
 					OTF.Serial_ID = SerialNo;
-					devnode = parse.fetch_devnode();
-					String[] part = devnode.split(" ");
-					devnode = part[1];
-					parse.execute(new String[] { "/bin/sh", "-c",
-							"mount " + "/dev/" + devnode + " /media/restricted/" + SerialNo });
+					parse.execute(new String[] { "/bin/sh", "-c","mount " + "/dev/" + devnode + " /media/restricted/" + SerialNo });
 					hashval = otfmain.getSum();
 					if (hashdb.equals(hashval)) {
 						JOptionPane.showMessageDialog(null, "You are  Authenticated !");
@@ -68,8 +73,8 @@ public class init {
 		}
 	}
 
-	void register(String SerialNo) throws Exception {
-		frame.pass_init();
+	void register(String SerialNo) throws Exception {   
+                frame.pass_init();
 		frame.setSize(300, 100);
 		frame.setVisible(true);
 		while (frame.isVisible()) {
@@ -80,16 +85,21 @@ public class init {
 				devnode = parse.fetch_devnode();
 				String[] part = devnode.split(" ");
 				devnode = part[1];
-				parse.execute(new String[] { "/bin/sh", "-c",
-						"mount " + "/dev/" + devnode + " /media/restricted/" + SerialNo });
+				parse.execute(new String[] { "/bin/sh", "-c","mount " + "/dev/" + devnode + " /media/restricted/" + SerialNo });
 				String hash_SerialNo = DigestUtils.sha256Hex(SerialNo);
 				//JOptionPane.showMessageDialog(null, "password:" + frame.pass);
 				OTF.Passphrase = frame.pass;
-				OTF.Serial_ID = SerialNo;
-				otfmain.reg();
+				OTF.Serial_ID = SerialNo; 
+                                MyCanvas canvas=new MyCanvas();  
+                                JFrame waitframe =new JFrame();  
+                                waitframe.add(canvas);  
+                                waitframe.setSize(400,400);  
+                                waitframe.setVisible(true);
+                                otfmain.reg();
+                                waitframe.dispose();
 				hashval = otfmain.getSum();
 				//JOptionPane.showMessageDialog(null, "init calling store");
-				db.store(hash_SerialNo, hashval);
+				db.updatevalue(hash_SerialNo, hashval);
 				JOptionPane.showMessageDialog(null, "You are now Registered !");
 				open_browser();
 			} catch (Exception e) {
@@ -105,7 +115,7 @@ public class init {
 	}
 
 	public static void main(String[] args) throws Exception {
-		init obj = new init();
+                init obj = new init();
 		obj.auth();
 	}
 }
